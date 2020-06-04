@@ -84,15 +84,16 @@ public void testTwoEntries() {
 
 @Test
 public void testFetchAllVoterRecords() {
-	int maks = 0;
+	int cnt = 0;
 	VoterRecordHsqlDAO siema = new VoterRecordHsqlDAO();
-    int jakis = siema.fetchAllVoterRecords().size()-1;
+    int jakis = siema.fetchAllVoterRecords().size();
     try (Connection c = getConnection(DBDESC, "SA", "")) {
-        try (ResultSet rs = c.createStatement().executeQuery("SELECT MAX(ID) FROM VOTER_RECORDS")) {
-            rs.next();
-            maks = rs.getInt(1);
+        try (ResultSet rs = c.createStatement().executeQuery("SELECT * FROM VOTER_RECORDS")) {
+        	while (rs.next()) {
+                cnt++;
+            }
         }  
-        Assertions.assertEquals(maks, jakis);
+        Assertions.assertEquals(cnt, jakis);
     } catch (SQLException e) {
         throw new RuntimeException(e);
     }
@@ -146,6 +147,39 @@ public void testFetchRecordByPesel() {
         
         }
 @Test
+public void testPersistVoterRecord() {
+	int cnt = 0;
+	VoterRecord record = new VoterRecord();
+	VoterRecordHsqlDAO siema = new VoterRecordHsqlDAO();
+	record = new VoterRecord();
+    record.setAddress("SOSNOWA 4");
+    record.setCity("SOSNOWIEC");
+    record.setFirstName("BUDYT");
+    record.setLastName("A");
+    record.setHasVoted(true);
+    record.setMunicipality("siemano");
+    record.setPesel("00260454856");
+    record.setProvince("ppa");
+	try (Connection c = getConnection(DBDESC, "SA", "")) {	
+        
+        siema.persistVoterRecord(record);
+        try (ResultSet rs = c.createStatement().executeQuery("SELECT * FROM VOTER_RECORDS WHERE ADDRESS='SOSNOWA 4' AND CITY='SOSNOWIEC' AND FIRST_NAME='BUDYT' AND LAST_NAME='A' AND MUNICIPALITY = 'siemano' AND HAS_VOTED = 1 AND PESEL = '00260454856' AND PROVINCE = 'ppa'")) {
+
+        	while (rs.next()) {
+                cnt++;
+            }
+            
+    	}
+        
+        Assertions.assertEquals(cnt, 1);
+	} catch (SQLException e) {
+	    throw new RuntimeException(e);
+	}
+}
+
+
+
+@Test
 public void testDeleteVoterRecord() {
 	int przed = 0;
 	int po = 0;
@@ -153,10 +187,12 @@ public void testDeleteVoterRecord() {
 	VoterRecordHsqlDAO siema = new VoterRecordHsqlDAO();
     try (Connection c = getConnection(DBDESC, "SA", "")) {
     	
-        try (ResultSet rs = c.createStatement().executeQuery("SELECT MAX(ID) FROM VOTER_RECORDS")) {
-            rs.next();
-            przed = rs.getInt(1)+1;
-        }
+        try (ResultSet rs = c.createStatement().executeQuery("SELECT * FROM VOTER_RECORDS")) {
+        	while (rs.next()) {
+                przed++;
+            }
+    	} 
+        
         try (ResultSet rs = c.createStatement().executeQuery("SELECT * FROM VOTER_RECORDS WHERE CITY = 'Kraków'")) {
         	rs.next();
         	record = new VoterRecord();
@@ -170,18 +206,25 @@ public void testDeleteVoterRecord() {
             record.setPesel(rs.getString("PESEL"));
             record.setProvince(rs.getString("PROVINCE"));
         	}
+        
         siema.deleteVoterRecord(record);
-        try (ResultSet rs = c.createStatement().executeQuery("SELECT MAX(ID) FROM VOTER_RECORDS")) {
-            rs.next();
-            po = rs.getInt(1)+1;
-        }
+        
+        try (ResultSet rs = c.createStatement().executeQuery("SELECT * FROM VOTER_RECORDS")) {
+        	while (rs.next()) {
+                po++;
+            }
         Assertions.assertEquals(przed, po + 1);
-    } catch (SQLException e) {
+        
+    } 
+}
+    catch (SQLException e) {
         throw new RuntimeException(e);
     }
+    
+}
 }
 
 
 
 
-}
+

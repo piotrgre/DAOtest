@@ -84,7 +84,7 @@ public class VoterRecordHsqlDAO implements VoterRecordDAO {
     @Override
     public void persistVoterRecord(VoterRecord record) {
         DatabaseLogic dl = new DatabaseLogic();
-        if (record.getId() != null) {
+        if (record.getId() == null) {
             dl.runWithConnection(c -> {
                 try (PreparedStatement ps = c.prepareStatement("INSERT INTO VOTER_RECORDS (ADDRESS, CITY, FIRST_NAME, LAST_NAME, HAS_VOTED, MUNICIPALITY, PESEL, PROVINCE) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
